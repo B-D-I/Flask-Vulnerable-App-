@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+{#    flash message#}
+    {% for message in get_flashed_messages() %}
+        <div class="alert alert-secondary alert-dismissible fade show" role="alert">
+
+        {{ message }}
+
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+        </button>
+
+        </div>
+
+    {% endfor %}
+
+    {% if name %}
+    <h1>Hello {{ name }}</h1>
+        <br/>
+        <img src="{{ url_for('static', filename='images/52.jpg' )}}"
+        width="200">
+        <br/>
+        <p id="demo">some stuff</p>
+{#        change demo to javascript#}
+        <script src="{{ url_for('static', filename='js/myfile.js') }}"></script>
+
+    {% else %}
+    <h1>Enter Name</h1>
+    <br>
+        <form method="POST">
+{#        CSRF token >#}
+            {{ form.hidden_tag() }}
+
+            {{ form.name.label }}
+            {{ form.name(class="form-control") }}
+            <br/>
+
+            {{ form.submit(class="btn btn-secondary") }}
+
+        </form>
+
+    {% endif %}
+
+
+
+{% endblock %}
