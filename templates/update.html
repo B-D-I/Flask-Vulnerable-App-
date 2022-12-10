@@ -20,40 +20,42 @@
 
 {% for our_user in our_users %}
 	<tr>
-    <td>{{ our_user.id }}. <a href="{{ url_for('update', id=our_user.id)}}">{{ our_user.name }}</a>
-        - {{ our_user.email }} - {{ our_user.role }} -
-        <a href="{{ url_for('delete', id=our_user.id)}}">Delete</a>
-    </td></tr>
+    <td>{{ our_user.id }}. {{ our_user.name }} - {{ our_user.email }} - {{ our_user.role }}
+    </td>
+{#	<td>{{ our_user.id }}. <a href="{{ url_for('update', id=our_user.id)}}">{{ our_user.name }}</a> - {{ our_user.email }} - {{ our_user.favorite_color }} -#}
+{#		<a href="{{ url_for('delete', id=our_user.id)}}">Delete</a></td>#}
+
+	</tr>
 {% endfor %}
 
-
 </table>
+
 
 {% else %}
 	<h1>User List:</h1>
 	<br/>
 <div class="shadow p-3 mb-5 bg-body rounded">
-	<form method="POST">
+	<form method="POST" action="/update/{{ name_to_update.id }}">
 		{{ form.hidden_tag() }}
 
 		{{ form.name.label(class="form-label") }}
 
-		{{ form.name(class="form-control") }}
+		{{ form.name(class="form-control", value=name_to_update.name) }}
 		<br/>
 
-		{{ form.username.label(class="form-label") }}
-
-		{{ form.username(class="form-control") }}
-		<br/>
+{#		{{ form.username.label(class="form-label") }}#}
+{##}
+{#		{{ form.username(class="form-control") }}#}
+{#		<br/>#}
 
 		{{ form.email.label(class="form-label") }}
 
-		{{ form.email(class="form-control") }}
+		{{ form.email(class="form-control", value=name_to_update.email) }}
 		<br/>
 
         {{ form.role.label(class="form-label") }}
 
-		{{ form.role(class="form-control") }}
+		{{ form.role(class="form-control", value=name_to_update.role) }}
 		<br/>
 
         {{ form.password.label(class="form-label") }}
@@ -78,6 +80,7 @@
 
 		{{ form.submit(class="btn btn-secondary") }}
 
+        <a href="{{ url_for('delete', id=id)}}" class="btn btn-danger">Delete</a>
 
 	</form>
 </div>
@@ -86,9 +89,7 @@
 
 {% for our_user in our_users %}
 	<tr>
-    <td>{{ our_user.id }}. <a href="{{ url_for('update', id=our_user.id)}}">{{ our_user.username }}</a>
-        - {{ our_user.email }} - {{ our_user.role }} -
-        <a href="{{ url_for('delete', id=our_user.id)}}">Delete</a>
+    <td>{{ our_user.id }}. {{ our_user.name }} - {{ our_user.email }} - {{ our_user.role }}
     </td></tr>
 {% endfor %}
 
