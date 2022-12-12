@@ -1,18 +1,15 @@
 from flask import Flask, render_template, flash, request, redirect, url_for
-from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField
-from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import datetime as dt
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 from creds import mysql_config
+from forms import *
 
 app = Flask(__name__)
 
-# sqlite
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-# mysql
+# mysql db
 app.config['SQLALCHEMY_DATABASE_URI'] = mysql_config
 
 # secret key csrf token
@@ -21,48 +18,39 @@ app.config['SECRET_KEY'] = "password"
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-
-class Users(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(200), nullable=False, unique=True)
-    name = db.Column(db.String(200), nullable=False)
-    email = db.Column(db.String(200), nullable=False, unique=True)
-    role = db.Column(db.String(200))
-    password = db.Column(db.String(200), nullable=False)
-    date_added = db.Column(db.DateTime, default=dt.datetime.now)
-    # hash password
-    # create string
-    def __repr__(self):
-        return'<Name %r>' % self.name
-
-
-class UserForm(FlaskForm):
-    name = StringField("Name", validators=[DataRequired()])
-    email = StringField("Email", validators=[DataRequired()])
-    username = StringField("Username", validators=[DataRequired()])
-    role = StringField("Role")
-    password = PasswordField("Password", validators=[DataRequired()])
-    submit = SubmitField("Submit")
-
-
-# wtf forms > can also use for reCaptcha etc.
-class NamerForm(FlaskForm):
-    name = StringField("Enter Name", validators=[DataRequired()])
-    submit = SubmitField("Submit")
-
-
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return Users.query.get(int(user_id))
 
 
-class LoginForm(FlaskForm):
-    username = StringField("Username", validators=[DataRequired()])
-    password = PasswordField("Password", validators=[DataRequired()])
-    submit = SubmitField("Submit")
+class Users(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), nullable=False, unique=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False, unique=True)
+    role = db.Column(db.String(50))
+    password_hash = db.Column(db.String(200), nullable=False)
+    date_added = db.Column(db.DateTime, default=dt.datetime.now)
+
+    @property
+    def password(self):
+        raise AttributeError('password not readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha512', salt_length=10)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    # create string
+    def __repr__(self):
+        return '<Name %r>' % self.name
 
 
 # login
@@ -73,17 +61,17 @@ def login():
         # get the first (unique) username
         user = Users.query.filter_by(username=form.username.data).first()
         if user:
-            # if check_password_hash(user.password_hash, form.password.data)
-            if user.password == form.password.data:
+            if check_password_hash(user.password_hash, form.password.data):
                 login_user(user)
                 flash("Login successful")
                 return redirect(url_for('dashboard'))
             else:
-                flash("Wrong password!")            # <<< remove these prompts (make generic error)
+                flash("Wrong password!")  # <<< remove these prompts (make generic error)
         else:
             flash("User does not exist!")
 
     return render_template('login.html', form=form)
+
 
 # logout
 @app.route('/logout', methods=['GET', 'POST'])
@@ -102,7 +90,8 @@ def dashboard():
 
 
 # DELETE
-@app.route('/delete/<int:id>')
+@app.route('/delete/<int:id>') # <- can delete users in URL
+@login_required
 def delete(id):
     user_to_delete = Users.query.get_or_404(id)
     name = None
@@ -126,6 +115,7 @@ def delete(id):
 
 # UPDATE
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
+@login_required
 def update(id):
     form = UserForm()
     name_to_update = Users.query.get_or_404(id)
@@ -148,6 +138,7 @@ def update(id):
 
 # ADD
 @app.route('/user/add', methods=['GET', 'POST'])
+@login_required
 def add_user():
     name = None
     form = UserForm()
@@ -156,7 +147,7 @@ def add_user():
         user = Users.query.filter_by(email=form.email.data).first()
         if user is None:
             user = Users(name=form.name.data, email=form.email.data,
-                         password=form.password.data,
+                         password=form.password_hash.data,
                          role=form.role.data, username=form.username.data)
             db.session.add(user)
             db.session.commit()
@@ -166,7 +157,7 @@ def add_user():
         form.email.data = ''
         form.role.data = ''
         form.username.data = ''
-        form.password.data = ''
+        form.password_hash.data = ''
         flash("User added successfully")
     our_users = Users.query.order_by(Users.date_added)
     return render_template("add_user.html",
@@ -176,11 +167,13 @@ def add_user():
 
 
 @app.route('/user/<name>')
+@login_required
 def user(name):
     return render_template('user.html', user_name=name)
 
 
 @app.route('/name', methods=['GET', 'POST'])
+@login_required
 def name():
     name = None
     form = NamerForm()
@@ -196,14 +189,8 @@ def name():
 
 @app.route('/')
 def index():
-    first_name = "Nathan"
-    stuff = "This is bold text"
-
-    favorite_pizza = ["Pepperoni", "Cheese", "Mushrooms", 41]
-    return render_template("index.html",
-                           first_name=first_name,
-                           stuff=stuff,
-                           favorite_pizza=favorite_pizza)
+    # first_name = "Nathan"
+    return render_template("index.html")  # first_name=first_name
 
 
 if __name__ == '__main__':

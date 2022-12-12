@@ -33,7 +33,7 @@
 	<h1>User List:</h1>
 	<br/>
 <div class="shadow p-3 mb-5 bg-body rounded">
-	<form method="POST">
+	<form method="POST" id="formUserRegistration">
 		{{ form.hidden_tag() }}
 
 		{{ form.name.label(class="form-label") }}
@@ -56,25 +56,16 @@
 		{{ form.role(class="form-control") }}
 		<br/>
 
-        {{ form.password.label(class="form-label") }}
 
-		{{ form.password(class="form-control") }}
+		{{ form.password_hash.label(class="form-label") }}
+
+		{{ form.password_hash(class="form-control") }}
 		<br/>
-{##}
-{#		{{ form.favorite_color.label(class="form-label") }}#}
-{##}
-{#		{{ form.favorite_color(class="form-control") }}#}
-{#		<br/>#}
-{##}
-{#		{{ form.password_hash.label(class="form-label") }}#}
-{##}
-{#		{{ form.password_hash(class="form-control") }}#}
-{#		<br/>#}
-{##}
-{#		{{ form.password_hash2.label(class="form-label") }}#}
-{##}
-{#		{{ form.password_hash2(class="form-control") }}#}
-{#		<br/>#}
+
+		{{ form.password_hash2.label(class="form-label") }}
+
+		{{ form.password_hash2(class="form-control") }}
+		<br/>
 
 		{{ form.submit(class="btn btn-secondary") }}
 
@@ -87,17 +78,10 @@
 {% for our_user in our_users %}
 	<tr>
     <td>{{ our_user.id }}. <a href="{{ url_for('update', id=our_user.id)}}">{{ our_user.username }}</a>
-        - {{ our_user.email }} - {{ our_user.role }} -
+        - {{ our_user.email }} - {{ our_user.role }} - {{ our_user.password_hash }}
         <a href="{{ url_for('delete', id=our_user.id)}}">Delete</a>
     </td></tr>
 {% endfor %}
-
-{#	<td>{{ our_user.id }}. <a href="{{ url_for('update', id=our_user.id)}}">{{ our_user.name }}</a> - {{our_user.username }} - {{ our_user.email }} - {{ our_user.favorite_color }} -#}
-{#	PW: {{ our_user.password_hash }} -#}
-{#	<a href="{{ url_for('delete', id=our_user.id)}}">Delete</a></td>#}
-{#	</tr>#}
-{#{% endfor %}#}
-{##}
 
 
 </table>

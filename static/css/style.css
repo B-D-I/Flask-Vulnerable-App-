@@ -1,3 +1,17 @@
 body {
     background-color: #edf6f6;
 }
+
+#logout{
+    background-color: #c54c4c;
+    color: white;
+    padding: 1em 1.5em;
+    text-decoration: none;
+    text-transform: uppercase;
+    border-radius: 25px;
+    font-style: oblique;
+}
+
+#login{
+
+}
