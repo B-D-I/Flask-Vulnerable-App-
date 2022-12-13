@@ -53,7 +53,9 @@ class Users(db.Model, UserMixin):
         return '<Name %r>' % self.name
 
 
-# login
+#### ROUTES ####
+
+# LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -66,14 +68,14 @@ def login():
                 flash("Login successful")
                 return redirect(url_for('dashboard'))
             else:
-                flash("Wrong password!")  # <<< remove these prompts (make generic error)
+                flash("Incorrect Credentials")
         else:
-            flash("User does not exist!")
+            flash("Incorrect Credentials")
 
     return render_template('login.html', form=form)
 
 
-# logout
+# LOGOUT
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
@@ -82,11 +84,12 @@ def logout():
     return redirect(url_for('login'))
 
 
-# dashboard
+# DASHBOARD
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    our_users = Users.query.order_by(Users.date_added)
+    return render_template('dashboard.html', our_users=our_users)
 
 
 # DELETE
@@ -189,8 +192,8 @@ def name():
 
 @app.route('/')
 def index():
-    # first_name = "Nathan"
-    return render_template("index.html")  # first_name=first_name
+    return render_template("index.html")
+
 
 
 if __name__ == '__main__':

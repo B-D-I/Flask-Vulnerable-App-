@@ -8,7 +8,7 @@ class UserForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired()])
     username = StringField("Username", validators=[DataRequired()])
     role = StringField("Role")
-    password_hash = PasswordField("Password", validators=[DataRequired(), Length(min=6, message='password too short'),
+    password_hash = PasswordField("Password", validators=[DataRequired(), Length(min=9, message='password too short'),
                                                           EqualTo('password_hash2', message='passwords must match')])
     password_hash2 = PasswordField("Confirm Password", validators=[DataRequired()])
     submit = SubmitField("Submit")

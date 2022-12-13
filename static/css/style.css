@@ -2,16 +2,31 @@ body {
     background-color: #edf6f6;
 }
 
+#dash{
+    font-size: xxx-large;
+    margin-left: -10%;
+}
+
 #logout{
     background-color: #c54c4c;
     color: white;
-    padding: 1em 1.5em;
+    padding: 1.5em 1.5em;
     text-decoration: none;
     text-transform: uppercase;
     border-radius: 25px;
     font-style: oblique;
+    float: right;
+    margin-right: -25%;
+    margin-top: -50px;
 }
 
-#login{
+#logo{
+    margin-left: 50%;
+    margin-top: -120px;
+}
 
+#logoLogin{
+    margin-left: 50%;
+    margin-bottom: 75%;
+    margin-top: -20px;
 }

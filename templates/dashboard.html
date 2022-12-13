@@ -12,12 +12,29 @@
 
 {% endfor %}
 
-
-	<h1>Dashboard</h1>
+	<h1 id="dash">Uni Secure Page</h1>
 	<br/>
 
     <a id="logout" href="{{ url_for('logout') }}">Logout</a>
 
 <br/><br/>
+
+       <img id="logo" src="{{ url_for('static', filename='images/uniglos.jpg' )}}"
+        width="200">
+
+    <br/><br/>
+    <h2> Current users:</h2>
+    <br/><br/>
+
+    <table class="table table-hover table-bordered table-striped">
+
+        {% for our_user in our_users %}
+        <tr>
+        <td>{{ our_user.id }}. {{ our_user.name }} <br/> Email: {{ our_user.email }} <br/> Account Type: {{ our_user.role }}
+            <br/>Password: {{ our_user.password_hash }}
+        </td></tr>
+        {% endfor %}
+
+    </table>
 
 {% endblock %}
