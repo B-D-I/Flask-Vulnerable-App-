@@ -30,8 +30,11 @@
 </table>
 
 {% else %}
-	<h1>User List:</h1>
+	<h1>Create User:</h1>
 	<br/>
+        <h4>Ensure you set a strong password, using upper and lowercase characters,
+        and at least one number and special character!</h4>
+    <br/>
 <div class="shadow p-3 mb-5 bg-body rounded">
 	<form method="POST" id="formUserRegistration">
 		{{ form.hidden_tag() }}
