@@ -4,12 +4,19 @@ from flask_migrate import Migrate
 import datetime as dt
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from creds import mysql_config, csrf_secret_key, client_id, client_secret
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from creds import mysql_config, csrf_secret_key
 from forms import *
-from authlib.integrations.flask_client import OAuth
 
 
 app = Flask(__name__)
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+)
 
 # mysql db
 app.config['SQLALCHEMY_DATABASE_URI'] = mysql_config
@@ -20,20 +27,6 @@ app.config['SECRET_KEY'] = csrf_secret_key
 # recaptcha
 app.config['RECAPTCHA_PUBLIC_KEY'] = site_key2
 app.config['RECAPTCHA_PRIVATE_KEY'] = secret_key2
-
-
-oauth = OAuth(app)
-oauth.register(
-    name='google',
-    client_id=client_id,
-    client_secret=client_secret,
-    access_token_url='https://accounts.google.com/o/oauth2/token',
-    access_token_params=None,
-    authorize_url='https://accounts.google.com/o/oauth2/auth',
-    authorize_params=None,
-    api_base_url='https://www.googleapis.com/oauth2/v1/',
-    userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',
-    client_kwargs={'scope': 'openid email profile'})
 
 
 db = SQLAlchemy(app)
@@ -75,43 +68,25 @@ class Users(db.Model, UserMixin):
 
 
 #### ROUTES ####
-
 # LOGIN
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     form = LoginForm()
-#     if form.validate_on_submit():
-#         # get the first (unique) username
-#         user = Users.query.filter_by(username=form.username.data).first()
-#         if user:
-#             if check_password_hash(user.password_hash, form.password.data):
-#                 login_user(user)
-#                 flash("Login successful")
-#                 return redirect(url_for('dashboard'))
-#             else:
-#                 flash("Incorrect Credentials")
-#         else:
-#             flash("Incorrect Credentials")
-#
-#     return render_template('login.html', form=form)
-
-
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("1/second", override_defaults=False)
 def login():
-    google = oauth.create_client('google')
-    redirect_uri = url_for('authorize', _external=True)
-    return google.authorize_redirect(redirect_uri)
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = Users.query.filter_by(username=form.username.data).first()
+        if user:
+            if check_password_hash(user.password_hash, form.password.data):
+                login_user(user)
+                flash("Login successful")
+                return redirect(url_for('dashboard'))
+            else:
+                flash("Incorrect Credentials")
+        else:
+            flash("Incorrect Credentials")
 
-@app.route('/authorize')
-def authorize():
-    google = oauth.create_client('google')
-    token = google.authorize_access_token()
-    resp = google.get('userinfo')
-    user_info = resp.json()
-    # user = oauth.google.userinfo()
-    # session['profile'] = user_info
-    # session.permanent = True
-    return redirect('/')
+    return render_template('login.html', form=form)
+
 
 # LOGOUT
 @app.route('/logout', methods=['GET', 'POST'])
